@@ -24,11 +24,18 @@ func New(blogRepo domain.BlogRepository) *BlogUseCase {
 func (u *BlogUseCase) CreateBlogPost(ctx context.Context, req *domain.CreateBlogPostRequest) (*domain.BlogPost, error) {
 	logger.Debug("createBlogPost: validating request", "title", req.Title)
 
-	// Parse date
-	date, err := time.Parse("2006-01-02", req.Date)
-	if err != nil {
-		logger.Warn("createBlogPost: invalid date format", "date", req.Date, "error", err.Error())
-		return nil, apperrors.BadRequest("invalid date format, use YYYY-MM-DD")
+	// Parse date (default to today if empty)
+	var date time.Time
+	if req.Date == "" {
+		date = time.Now()
+		logger.Debug("createBlogPost: date not provided, using today", "date", date.Format("2006-01-02"))
+	} else {
+		var err error
+		date, err = time.Parse("2006-01-02", req.Date)
+		if err != nil {
+			logger.Warn("createBlogPost: invalid date format", "date", req.Date, "error", err.Error())
+			return nil, apperrors.BadRequest("invalid date format, use YYYY-MM-DD")
+		}
 	}
 
 	// Create blog post
@@ -102,16 +109,18 @@ func (u *BlogUseCase) UpdateBlogPost(ctx context.Context, id string, req *domain
 		return nil, apperrors.InternalServerError("failed to update blog post: " + err.Error())
 	}
 
-	// Parse date
-	date, err := time.Parse("2006-01-02", req.Date)
-	if err != nil {
-		logger.Warn("updateBlogPost: invalid date format", "date", req.Date, "error", err.Error())
-		return nil, apperrors.BadRequest("invalid date format, use YYYY-MM-DD")
+	// Parse date (keep existing if empty)
+	if req.Date != "" {
+		date, err := time.Parse("2006-01-02", req.Date)
+		if err != nil {
+			logger.Warn("updateBlogPost: invalid date format", "date", req.Date, "error", err.Error())
+			return nil, apperrors.BadRequest("invalid date format, use YYYY-MM-DD")
+		}
+		existingPost.Date = date
 	}
 
 	// Update fields
 	existingPost.Title = req.Title
-	existingPost.Date = date
 	existingPost.Excerpt = req.Excerpt
 	existingPost.Content = req.Content
 	existingPost.UpdatedAt = time.Now()

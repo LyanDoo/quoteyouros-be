@@ -61,7 +61,7 @@ type Message struct {
 // CreateBlogPostRequest DTO
 type CreateBlogPostRequest struct {
 	Title   string `json:"title" validate:"required,min=3,max=255"`
-	Date    string `json:"date" validate:"required"`
+	Date    string `json:"date"`
 	Excerpt string `json:"excerpt" validate:"required,min=10,max=500"`
 	Content string `json:"content" validate:"required,min=10"`
 }
@@ -69,7 +69,7 @@ type CreateBlogPostRequest struct {
 // UpdateBlogPostRequest DTO
 type UpdateBlogPostRequest struct {
 	Title   string `json:"title" validate:"required,min=3,max=255"`
-	Date    string `json:"date" validate:"required"`
+	Date    string `json:"date"`
 	Excerpt string `json:"excerpt" validate:"required,min=10,max=500"`
 	Content string `json:"content" validate:"required,min=10"`
 }

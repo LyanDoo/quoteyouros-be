@@ -83,7 +83,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"My First Blog Post\",\n  \"date\": \"2026-05-20\",\n  \"excerpt\": \"This is a brief excerpt of the blog post\",\n  \"content\": \"This is the full content of the blog post with detailed information\"\n}"
+              "raw": "{\n  \"title\": \"My First Blog Post\",\n  \"excerpt\": \"This is a brief excerpt of the blog post\",\n  \"content\": \"This is the full content of the blog post with detailed information\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/blog",
@@ -112,7 +112,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Updated Blog Title\",\n  \"date\": \"2026-05-20\",\n  \"excerpt\": \"Updated excerpt\",\n  \"content\": \"Updated content with new information\"\n}"
+              "raw": "{\n  \"title\": \"Updated Blog Title\",\n  \"excerpt\": \"Updated excerpt\",\n  \"content\": \"Updated content with new information\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/blog/{{blog_id}}",
