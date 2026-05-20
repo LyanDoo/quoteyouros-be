@@ -12,8 +12,10 @@ import (
 	"github.com/quoteyouros/backend/internal/handler"
 	"github.com/quoteyouros/backend/internal/infrastructure/postgres"
 	"github.com/quoteyouros/backend/internal/middleware"
+	blogrepo "github.com/quoteyouros/backend/internal/repository/blog"
 	authrepo "github.com/quoteyouros/backend/internal/repository/user"
 	authuc "github.com/quoteyouros/backend/internal/usecase/auth"
+	bloguc "github.com/quoteyouros/backend/internal/usecase/blog"
 	applogger "github.com/quoteyouros/backend/pkg/logger"
 )
 
@@ -47,14 +49,17 @@ func main() {
 	// Initialize repositories
 	applogger.Debug("main: initializing repositories")
 	userRepository := authrepo.NewUserRepository(db)
+	blogRepository := blogrepo.NewBlogRepository(db)
 
 	// Initialize use cases
 	applogger.Debug("main: initializing use cases")
 	authUseCase := authuc.New(userRepository, cfg.JWT.Secret, cfg.JWT.Expiration)
+	blogUseCase := bloguc.New(blogRepository)
 
 	// Initialize handlers
 	applogger.Debug("main: initializing handlers")
 	authHandler := handler.NewAuthHandler(authUseCase)
+	blogHandler := handler.NewBlogHandler(blogUseCase)
 
 	// Health check endpoint
 	app.Get("/health", func(c *fiber.Ctx) error {
@@ -70,11 +75,11 @@ func main() {
 	api := app.Group("/api")
 
 	// Public routes
-	setupPublicRoutes(api, authHandler)
+	setupPublicRoutes(api, authHandler, blogHandler)
 
 	// Protected routes (admin)
 	jwtMiddleware := middleware.JWTAuth(cfg.JWT.Secret)
-	setupProtectedRoutes(api, authHandler, jwtMiddleware)
+	setupProtectedRoutes(api, authHandler, blogHandler, jwtMiddleware)
 
 	// Start server
 	addr := fmt.Sprintf(":%d", cfg.Server.Port)
@@ -86,7 +91,7 @@ func main() {
 	}
 }
 
-func setupPublicRoutes(app fiber.Router, authHandler *handler.AuthHandler) {
+func setupPublicRoutes(app fiber.Router, authHandler *handler.AuthHandler, blogHandler *handler.BlogHandler) {
 	// Auth routes
 	auth := app.Group("/auth")
 	auth.Post("/register", authHandler.Register)
@@ -94,12 +99,8 @@ func setupPublicRoutes(app fiber.Router, authHandler *handler.AuthHandler) {
 
 	// Blog routes
 	blog := app.Group("/blog")
-	blog.Get("", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{"message": "GET /api/blog - Not yet implemented"})
-	})
-	blog.Get("/:id", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{"message": "GET /api/blog/:id - Not yet implemented"})
-	})
+	blog.Get("", blogHandler.GetAllBlogPosts)
+	blog.Get("/:id", blogHandler.GetBlogPost)
 
 	// Projects routes
 	projects := app.Group("/projects")
@@ -128,7 +129,7 @@ func setupPublicRoutes(app fiber.Router, authHandler *handler.AuthHandler) {
 	})
 }
 
-func setupProtectedRoutes(app fiber.Router, authHandler *handler.AuthHandler, jwtMiddleware fiber.Handler) {
+func setupProtectedRoutes(app fiber.Router, authHandler *handler.AuthHandler, blogHandler *handler.BlogHandler, jwtMiddleware fiber.Handler) {
 	// Auth protected routes
 	auth := app.Group("/auth", jwtMiddleware)
 	auth.Get("/me", authHandler.GetCurrentUser)
@@ -136,15 +137,9 @@ func setupProtectedRoutes(app fiber.Router, authHandler *handler.AuthHandler, jw
 
 	// Admin blog routes (protected)
 	blog := app.Group("/blog", jwtMiddleware)
-	blog.Post("", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{"message": "POST /api/blog - Not yet implemented"})
-	})
-	blog.Put("/:id", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{"message": "PUT /api/blog/:id - Not yet implemented"})
-	})
-	blog.Delete("/:id", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{"message": "DELETE /api/blog/:id - Not yet implemented"})
-	})
+	blog.Post("", blogHandler.CreateBlogPost)
+	blog.Put("/:id", blogHandler.UpdateBlogPost)
+	blog.Delete("/:id", blogHandler.DeleteBlogPost)
 
 	// Admin projects routes (protected)
 	projects := app.Group("/projects", jwtMiddleware)
