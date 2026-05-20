@@ -1,0 +1,6 @@
+-- Revert schema - drop all tables
+DROP TABLE IF EXISTS messages CASCADE;
+DROP TABLE IF EXISTS contact_messages CASCADE;
+DROP TABLE IF EXISTS projects CASCADE;
+DROP TABLE IF EXISTS blog_posts CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
