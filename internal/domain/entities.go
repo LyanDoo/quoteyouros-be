@@ -107,7 +107,19 @@ type LoginRequest struct {
 
 // LoginResponse DTO
 type LoginResponse struct {
-	Token string `json:"token"`
+	Token     string `json:"token"`
+	ExpiresIn int    `json:"expires_in"`
+	User      struct {
+		ID    string `json:"id"`
+		Email string `json:"email"`
+	} `json:"user"`
+}
+
+// RegisterRequest DTO
+type RegisterRequest struct {
+	Email           string `json:"email" validate:"required,email"`
+	Password        string `json:"password" validate:"required,min=8"`
+	ConfirmPassword string `json:"confirm_password" validate:"required,eqfield=Password"`
 }
 
 // NewUser creates a new user with ID and timestamp

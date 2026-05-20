@@ -27,7 +27,8 @@ type ContactUseCase interface {
 
 // AuthUseCase defines authentication business logic operations
 type AuthUseCase interface {
-	Login(ctx context.Context, req *LoginRequest) (string, error)
+	Register(ctx context.Context, req *RegisterRequest) (*User, error)
+	Login(ctx context.Context, req *LoginRequest) (string, int64, error)
 	GetUserByID(ctx context.Context, id string) (*User, error)
 }
 

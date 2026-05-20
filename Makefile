@@ -59,6 +59,10 @@ docker-up:
 	@echo "Starting all Docker services..."
 	docker-compose up
 
+docker-up-rebuild:
+	@echo "Starting all Docker services..."
+	docker-compose up --build 
+
 docker-down:
 	@echo "Stopping all Docker services..."
 	docker-compose down

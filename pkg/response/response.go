@@ -3,10 +3,10 @@ package response
 import "github.com/gofiber/fiber/v2"
 
 type Response[T any] struct {
-	Success bool        `json:"success"`
-	Data    T           `json:"data,omitempty"`
-	Message string      `json:"message,omitempty"`
-	Error   string      `json:"error,omitempty"`
+	Success bool   `json:"success"`
+	Data    T      `json:"data,omitempty"`
+	Message string `json:"message,omitempty"`
+	Error   string `json:"error,omitempty"`
 }
 
 type PaginatedResponse[T any] struct {
@@ -22,6 +22,16 @@ type ErrorResponse struct {
 	Success bool   `json:"success"`
 	Error   string `json:"error"`
 	Code    int    `json:"code"`
+}
+
+type AppError struct {
+	Code    int
+	Message string
+	Details string
+}
+
+func (e *AppError) Error() string {
+	return e.Message
 }
 
 // SuccessResponse returns a successful response
