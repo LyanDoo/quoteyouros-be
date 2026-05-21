@@ -39,3 +39,12 @@ type UserRepository interface {
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
 	GetUserByID(ctx context.Context, id string) (*User, error)
 }
+
+// ProfileRepository defines profile data access operations
+type ProfileRepository interface {
+	GetProfile(ctx context.Context) (*Profile, error)
+	CreateProfile(ctx context.Context, profile *Profile) error
+	UpdateProfile(ctx context.Context, profile *Profile) error
+	SaveResume(ctx context.Context, profile *Profile) error
+	DeleteResume(ctx context.Context) error
+}

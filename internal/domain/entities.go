@@ -56,6 +56,19 @@ type Message struct {
 	CreatedAt time.Time `db:"created_at"`
 }
 
+// Profile represents user profile information including resume
+type Profile struct {
+	ID               string     `db:"id"`
+	About            string     `db:"about"`
+	ResumeFileName   string     `db:"resume_file_name"`
+	ResumeFileSize   int64      `db:"resume_file_size"`
+	ResumeFilePath   string     `db:"resume_file_path"`
+	ResumeMimeType   string     `db:"resume_mime_type"`
+	ResumeUploadedAt *time.Time `db:"resume_uploaded_at"`
+	CreatedAt        time.Time  `db:"created_at"`
+	UpdatedAt        time.Time  `db:"updated_at"`
+}
+
 // DTOs for API requests/responses
 
 // CreateBlogPostRequest DTO
@@ -120,6 +133,30 @@ type RegisterRequest struct {
 	Email           string `json:"email" validate:"required,email"`
 	Password        string `json:"password" validate:"required,min=8"`
 	ConfirmPassword string `json:"confirm_password" validate:"required,eqfield=Password"`
+}
+
+// UpdateProfileRequest DTO
+type UpdateProfileRequest struct {
+	About string `json:"about"`
+}
+
+// ProfileResponse DTO for API responses
+type ProfileResponse struct {
+	About  string `json:"about"`
+	Resume struct {
+		FileName   string `json:"file_name"`
+		FileSize   int64  `json:"file_size"`
+		UploadedAt string `json:"uploaded_at"`
+		HasResume  bool   `json:"has_resume"`
+	} `json:"resume"`
+}
+
+// ResumeUploadResponse DTO for successful upload
+type ResumeUploadResponse struct {
+	FileName    string `json:"file_name"`
+	FileSize    int64  `json:"file_size"`
+	UploadedAt  string `json:"uploaded_at"`
+	DownloadURL string `json:"download_url"`
 }
 
 // NewUser creates a new user with ID and timestamp
