@@ -69,6 +69,20 @@ type Profile struct {
 	UpdatedAt        time.Time  `db:"updated_at"`
 }
 
+// Comment represents a blog post comment
+type Comment struct {
+	ID               string    `db:"id"`
+	BlogPostID       string    `db:"blog_post_id"`
+	ReplyToCommentID *string   `db:"reply_to_comment_id"`
+	AuthorName       string    `db:"author_name"`
+	AuthorEmail      *string   `db:"author_email"`
+	Content          string    `db:"content"`
+	Rating           *int      `db:"rating"`
+	IsSpam           bool      `db:"is_spam"`
+	CreatedAt        time.Time `db:"created_at"`
+	UpdatedAt        time.Time `db:"updated_at"`
+}
+
 // DTOs for API requests/responses
 
 // CreateBlogPostRequest DTO
@@ -159,6 +173,45 @@ type ResumeUploadResponse struct {
 	DownloadURL string `json:"download_url"`
 }
 
+// CreateCommentRequest DTO for creating a comment
+type CreateCommentRequest struct {
+	AuthorName       string  `json:"author_name" validate:"required,min=1,max=255"`
+	AuthorEmail      *string `json:"author_email" validate:"omitempty,email"`
+	Content          string  `json:"content" validate:"required,min=1,max=5000"`
+	Rating           *int    `json:"rating" validate:"omitempty,gte=1,lte=5"`
+	ReplyToCommentID *string `json:"reply_to_comment_id"`
+}
+
+// UpdateCommentRequest DTO for updating a comment
+type UpdateCommentRequest struct {
+	Content string `json:"content" validate:"required,min=1,max=5000"`
+	Rating  *int   `json:"rating" validate:"omitempty,gte=1,lte=5"`
+	IsSpam  *bool  `json:"is_spam"`
+}
+
+// CommentResponse DTO for API responses
+type CommentResponse struct {
+	ID               string  `json:"id"`
+	BlogPostID       string  `json:"blog_post_id"`
+	ReplyToCommentID *string `json:"reply_to_comment_id,omitempty"`
+	AuthorName       string  `json:"author_name"`
+	AuthorEmail      *string `json:"author_email,omitempty"`
+	Content          string  `json:"content"`
+	Rating           *int    `json:"rating,omitempty"`
+	IsSpam           bool    `json:"is_spam"`
+	CreatedAt        string  `json:"created_at"`
+	UpdatedAt        string  `json:"updated_at"`
+}
+
+// CommentListResponse DTO for paginated comments
+type CommentListResponse struct {
+	Comments   []CommentResponse `json:"comments"`
+	Total      int               `json:"total"`
+	Page       int               `json:"page"`
+	Limit      int               `json:"limit"`
+	TotalPages int               `json:"total_pages"`
+}
+
 // NewUser creates a new user with ID and timestamp
 func NewUser(email, passwordHash string) *User {
 	now := time.Now()
@@ -208,5 +261,22 @@ func NewContactMessage(fromEmail, subject, message string) *ContactMessage {
 		Subject:   subject,
 		Message:   message,
 		CreatedAt: time.Now(),
+	}
+}
+
+// NewComment creates a new comment with ID and timestamp
+func NewComment(blogPostID, authorName string, authorEmail *string, content string, replyToCommentID *string, rating *int) *Comment {
+	now := time.Now()
+	return &Comment{
+		ID:               uuid.New().String(),
+		BlogPostID:       blogPostID,
+		AuthorName:       authorName,
+		AuthorEmail:      authorEmail,
+		Content:          content,
+		ReplyToCommentID: replyToCommentID,
+		Rating:           rating,
+		IsSpam:           false,
+		CreatedAt:        now,
+		UpdatedAt:        now,
 	}
 }

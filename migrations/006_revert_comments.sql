@@ -1,0 +1,2 @@
+-- Revert comments table
+DROP TABLE IF EXISTS comments CASCADE;

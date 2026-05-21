@@ -13,11 +13,13 @@ import (
 	"github.com/quoteyouros/backend/internal/infrastructure/postgres"
 	"github.com/quoteyouros/backend/internal/middleware"
 	blogrepo "github.com/quoteyouros/backend/internal/repository/blog"
+	commentrepo "github.com/quoteyouros/backend/internal/repository/comment"
 	profilerepo "github.com/quoteyouros/backend/internal/repository/profile"
 	projectrepo "github.com/quoteyouros/backend/internal/repository/project"
 	authrepo "github.com/quoteyouros/backend/internal/repository/user"
 	authuc "github.com/quoteyouros/backend/internal/usecase/auth"
 	bloguc "github.com/quoteyouros/backend/internal/usecase/blog"
+	commentuc "github.com/quoteyouros/backend/internal/usecase/comment"
 	profileuc "github.com/quoteyouros/backend/internal/usecase/profile"
 	projectuc "github.com/quoteyouros/backend/internal/usecase/project"
 	"github.com/quoteyouros/backend/pkg/fileupload"
@@ -57,6 +59,7 @@ func main() {
 	blogRepository := blogrepo.NewBlogRepository(db)
 	projectRepository := projectrepo.NewProjectRepository(db)
 	profileRepository := profilerepo.NewProfileRepository(db)
+	commentRepository := commentrepo.NewCommentRepository(db)
 
 	// Initialize file upload service
 	applogger.Debug("main: initializing file upload service")
@@ -68,6 +71,7 @@ func main() {
 	blogUseCase := bloguc.New(blogRepository)
 	projectUseCase := projectuc.New(projectRepository)
 	profileUseCase := profileuc.New(profileRepository, fileUploadService)
+	commentUseCase := commentuc.New(commentRepository, blogRepository)
 
 	// Initialize handlers
 	applogger.Debug("main: initializing handlers")
@@ -75,6 +79,7 @@ func main() {
 	blogHandler := handler.NewBlogHandler(blogUseCase)
 	projectHandler := handler.NewProjectHandler(projectUseCase)
 	profileHandler := handler.NewProfileHandler(profileUseCase)
+	commentHandler := handler.NewCommentHandler(commentUseCase)
 
 	// Health check endpoint
 	app.Get("/health", func(c *fiber.Ctx) error {
@@ -90,11 +95,11 @@ func main() {
 	api := app.Group("/api")
 
 	// Public routes
-	setupPublicRoutes(api, authHandler, blogHandler, projectHandler, profileHandler)
+	setupPublicRoutes(api, authHandler, blogHandler, projectHandler, profileHandler, commentHandler)
 
 	// Protected routes (admin)
 	jwtMiddleware := middleware.JWTAuth(cfg.JWT.Secret)
-	setupProtectedRoutes(api, authHandler, blogHandler, projectHandler, profileHandler, jwtMiddleware)
+	setupProtectedRoutes(api, authHandler, blogHandler, projectHandler, profileHandler, commentHandler, jwtMiddleware)
 
 	// Start server
 	addr := fmt.Sprintf(":%d", cfg.Server.Port)
@@ -106,7 +111,7 @@ func main() {
 	}
 }
 
-func setupPublicRoutes(app fiber.Router, authHandler *handler.AuthHandler, blogHandler *handler.BlogHandler, projectHandler *handler.ProjectHandler, profileHandler *handler.ProfileHandler) {
+func setupPublicRoutes(app fiber.Router, authHandler *handler.AuthHandler, blogHandler *handler.BlogHandler, projectHandler *handler.ProjectHandler, profileHandler *handler.ProfileHandler, commentHandler *handler.CommentHandler) {
 	// Auth routes
 	auth := app.Group("/auth")
 	auth.Post("/register", authHandler.Register)
@@ -116,6 +121,8 @@ func setupPublicRoutes(app fiber.Router, authHandler *handler.AuthHandler, blogH
 	blog := app.Group("/blog")
 	blog.Get("", blogHandler.GetAllBlogPosts)
 	blog.Get("/:id", blogHandler.GetBlogPost)
+	blog.Get("/:id/comments", commentHandler.GetCommentsByBlogPost)
+	blog.Post("/:id/comments", commentHandler.CreateComment)
 
 	// Projects routes
 	projects := app.Group("/projects")
@@ -127,13 +134,17 @@ func setupPublicRoutes(app fiber.Router, authHandler *handler.AuthHandler, blogH
 	profile.Get("/about", profileHandler.GetProfile)
 	profile.Get("/resume/download", profileHandler.DownloadResume)
 
+	// Comment routes (public for reading)
+	comments := app.Group("/comments")
+	comments.Get("/:id/replies", commentHandler.GetReplies)
+
 	// Contact routes
 	app.Post("/contact", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"message": "POST /api/contact - Not yet implemented"})
 	})
 }
 
-func setupProtectedRoutes(app fiber.Router, authHandler *handler.AuthHandler, blogHandler *handler.BlogHandler, projectHandler *handler.ProjectHandler, profileHandler *handler.ProfileHandler, jwtMiddleware fiber.Handler) {
+func setupProtectedRoutes(app fiber.Router, authHandler *handler.AuthHandler, blogHandler *handler.BlogHandler, projectHandler *handler.ProjectHandler, profileHandler *handler.ProfileHandler, commentHandler *handler.CommentHandler, jwtMiddleware fiber.Handler) {
 	// Auth protected routes
 	auth := app.Group("/auth", jwtMiddleware)
 	auth.Get("/me", authHandler.GetCurrentUser)
@@ -155,6 +166,11 @@ func setupProtectedRoutes(app fiber.Router, authHandler *handler.AuthHandler, bl
 	profile := app.Group("/profile", jwtMiddleware)
 	profile.Put("/about", profileHandler.UpdateProfile)
 	profile.Post("/resume", profileHandler.UploadResume)
+
+	// Admin comment routes (protected)
+	comments := app.Group("/comments", jwtMiddleware)
+	comments.Put("/:id", commentHandler.UpdateComment)
+	comments.Delete("/:id", commentHandler.DeleteComment)
 
 	// Admin messages routes (protected)
 	messages := app.Group("/messages", jwtMiddleware)

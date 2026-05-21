@@ -48,3 +48,13 @@ type ProfileRepository interface {
 	SaveResume(ctx context.Context, profile *Profile) error
 	DeleteResume(ctx context.Context) error
 }
+
+// CommentRepository defines comment data access operations
+type CommentRepository interface {
+	CreateComment(ctx context.Context, comment *Comment) error
+	GetComment(ctx context.Context, id string) (*Comment, error)
+	GetCommentsByBlogPost(ctx context.Context, blogPostID string, limit, offset int) ([]*Comment, int64, error)
+	GetReplies(ctx context.Context, commentID string, limit, offset int) ([]*Comment, int64, error)
+	UpdateComment(ctx context.Context, id string, comment *Comment) error
+	DeleteComment(ctx context.Context, id string) error
+}

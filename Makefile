@@ -1,4 +1,4 @@
-.PHONY: help build run test db-up db-down db-reset docker-up docker-down docker-logs db-migrate db-migrate-revert db-migrate-init db-migrate-profiles db-migrate-revert-profiles db-migrate-revert-all
+.PHONY: help build run test db-up db-down db-reset docker-up docker-down docker-logs db-migrate db-migrate-revert db-migrate-init db-migrate-profiles db-migrate-comments db-migrate-revert-profiles db-migrate-revert-comments db-migrate-revert-all
 
 help:
 	@echo "Available commands:"
@@ -13,8 +13,10 @@ help:
 	@echo "  make db-migrate           - Run all forward migrations"
 	@echo "  make db-migrate-init      - Run initial schema migration (001)"
 	@echo "  make db-migrate-profiles  - Run profiles migration (003)"
+	@echo "  make db-migrate-comments  - Run comments migration (005)"
 	@echo "  make db-migrate-revert    - Revert all migrations"
 	@echo "  make db-migrate-revert-profiles - Revert profiles migration (004)"
+	@echo "  make db-migrate-revert-comments - Revert comments migration (006)"
 	@echo "  make db-migrate-revert-all     - Revert all migrations (full)"
 	@echo ""
 	@echo "Docker commands:"
@@ -55,7 +57,7 @@ db-reset: db-migrate-revert db-migrate
 	@echo "Database reset complete"
 
 # Forward migrations
-db-migrate: db-migrate-init db-migrate-profiles
+db-migrate: db-migrate-init db-migrate-profiles db-migrate-comments
 	@echo "All migrations completed"
 
 db-migrate-init:
@@ -67,13 +69,21 @@ db-migrate-profiles:
 	@echo "Running profiles migration (003)..."
 	docker exec -i quoteyouros_db psql -U postgres -d quoteyouros < migrations/003_create_profiles.sql
 
+db-migrate-comments:
+	@echo "Running comments migration (005)..."
+	docker exec -i quoteyouros_db psql -U postgres -d quoteyouros < migrations/005_create_comments.sql
+
 # Revert migrations
-db-migrate-revert: db-migrate-revert-profiles db-migrate-revert-all
+db-migrate-revert: db-migrate-revert-comments db-migrate-revert-profiles db-migrate-revert-all
 	@echo "All migrations reverted"
 
 db-migrate-revert-profiles:
 	@echo "Reverting profiles migration (004)..."
 	docker exec -i quoteyouros_db psql -U postgres -d quoteyouros < migrations/004_revert_profiles.sql
+
+db-migrate-revert-comments:
+	@echo "Reverting comments migration (006)..."
+	docker exec -i quoteyouros_db psql -U postgres -d quoteyouros < migrations/006_revert_comments.sql
 
 db-migrate-revert-all:
 	@echo "Reverting all migrations (002)..."

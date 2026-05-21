@@ -524,6 +524,156 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Comments",
+      "item": [
+        {
+          "name": "Get Blog Post Comments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/blog/{{blog_id}}/comments?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "blog", "{{blog_id}}", "comments"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Fetch all comments for a blog post (paginated)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Comment Replies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/comments/{{comment_id}}/replies?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "comments", "{{comment_id}}", "replies"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Fetch all replies to a specific comment (paginated)"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"author_name\": \"John Doe\",\n  \"author_email\": null,\n  \"content\": \"This is a great blog post! Very informative and well written.\",\n  \"rating\": 5,\n  \"reply_to_comment_id\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/blog/{{blog_id}}/comments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "blog", "{{blog_id}}", "comments"]
+            },
+            "description": "Create a new comment on a blog post (public)"
+          },
+          "response": []
+        },
+        {
+          "name": "Reply to Comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"author_name\": \"Jane Smith\",\n  \"author_email\": \"jane@example.com\",\n  \"content\": \"I completely agree with your point!\",\n  \"rating\": null,\n  \"reply_to_comment_id\": \"{{comment_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/blog/{{blog_id}}/comments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "blog", "{{blog_id}}", "comments"]
+            },
+            "description": "Reply to an existing comment (public)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Comment",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Updated comment content with more details\",\n  \"rating\": 4,\n  \"is_spam\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/comments/{{comment_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "comments", "{{comment_id}}"]
+            },
+            "description": "Update a comment (admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Comment",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/comments/{{comment_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "comments", "{{comment_id}}"]
+            },
+            "description": "Delete a comment (admin only)"
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [
@@ -550,6 +700,11 @@
     {
       "key": "message_id",
       "value": "message-id-here",
+      "type": "string"
+    },
+    {
+      "key": "comment_id",
+      "value": "comment-id-here",
       "type": "string"
     }
   ]
