@@ -33,6 +33,8 @@ services:
       DB_NAME: ${DB_NAME:-quoteyouros}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key}
       APP_ENV: ${APP_ENV:-development}
+    volumes:
+      - ./storage/resumes:/root/storage/resumes
     depends_on:
       postgres:
         condition: service_healthy

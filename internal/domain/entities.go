@@ -60,10 +60,10 @@ type Message struct {
 type Profile struct {
 	ID               string     `db:"id"`
 	About            string     `db:"about"`
-	ResumeFileName   string     `db:"resume_file_name"`
-	ResumeFileSize   int64      `db:"resume_file_size"`
-	ResumeFilePath   string     `db:"resume_file_path"`
-	ResumeMimeType   string     `db:"resume_mime_type"`
+	ResumeFileName   *string    `db:"resume_file_name"`
+	ResumeFileSize   *int64     `db:"resume_file_size"`
+	ResumeFilePath   *string    `db:"resume_file_path"`
+	ResumeMimeType   *string    `db:"resume_mime_type"`
 	ResumeUploadedAt *time.Time `db:"resume_uploaded_at"`
 	CreatedAt        time.Time  `db:"created_at"`
 	UpdatedAt        time.Time  `db:"updated_at"`

@@ -113,9 +113,9 @@ func (u *ProfileUseCase) UploadResume(ctx context.Context, file *multipart.FileH
 	}
 
 	// Delete old resume if it exists
-	if profile.ResumeFilePath != "" {
-		logger.Debug("uploadResume: deleting old resume", "path", profile.ResumeFilePath)
-		if err := u.fileUpload.DeleteResume(profile.ResumeFilePath); err != nil {
+	if profile.ResumeFilePath != nil && *profile.ResumeFilePath != "" {
+		logger.Debug("uploadResume: deleting old resume", "path", *profile.ResumeFilePath)
+		if err := u.fileUpload.DeleteResume(*profile.ResumeFilePath); err != nil {
 			logger.Warn("uploadResume: failed to delete old resume", "error", err.Error())
 			// Don't fail the upload if old file deletion fails
 		}
@@ -130,10 +130,10 @@ func (u *ProfileUseCase) UploadResume(ctx context.Context, file *multipart.FileH
 
 	// Update profile with resume information
 	now := time.Now()
-	profile.ResumeFileName = fileName
-	profile.ResumeFilePath = filePath
-	profile.ResumeFileSize = fileSize
-	profile.ResumeMimeType = mimeType
+	profile.ResumeFileName = &fileName
+	profile.ResumeFilePath = &filePath
+	profile.ResumeFileSize = &fileSize
+	profile.ResumeMimeType = &mimeType
 	profile.ResumeUploadedAt = &now
 
 	logger.Info("uploadResume: saving resume metadata to database", "profile_id", profile.ID, "filename", fileName)
@@ -158,11 +158,11 @@ func (u *ProfileUseCase) GetResumeFilePath(ctx context.Context) (string, error) 
 		return "", apperrors.InternalServerError("failed to retrieve profile")
 	}
 
-	if profile.ResumeFilePath == "" {
+	if profile.ResumeFilePath == nil || *profile.ResumeFilePath == "" {
 		logger.Warn("getResumeFilePath: no resume found")
 		return "", apperrors.NotFound("resume not found")
 	}
 
-	logger.Debug("getResumeFilePath: resume file path retrieved", "path", profile.ResumeFilePath)
-	return profile.ResumeFilePath, nil
+	logger.Debug("getResumeFilePath: resume file path retrieved", "path", *profile.ResumeFilePath)
+	return *profile.ResumeFilePath, nil
 }

@@ -303,16 +303,61 @@
           "response": []
         },
         {
-          "name": "Get Resume",
+          "name": "Update About Me",
           "request": {
-            "method": "GET",
-            "header": [],
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"about\": \"I am a passionate developer with 5+ years of experience in Go and React. I love building scalable applications and solving complex problems.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/profile/about",
+              "host": ["{{base_url}}"],
+              "path": ["api", "profile", "about"]
+            },
+            "description": "Update the about me profile information (protected)"
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Resume",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "resume.pdf"
+                }
+              ]
+            },
             "url": {
               "raw": "{{base_url}}/api/profile/resume",
               "host": ["{{base_url}}"],
               "path": ["api", "profile", "resume"]
             },
-            "description": "Fetch resume data (experience, skills, education)"
+            "description": "Upload or replace resume file (PDF only, max 10MB) (protected)"
           },
           "response": []
         },

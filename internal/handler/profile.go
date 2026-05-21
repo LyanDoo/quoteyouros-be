@@ -37,10 +37,14 @@ func (h *ProfileHandler) GetProfile(c *fiber.Ctx) error {
 	// Build response
 	profileResp := domain.ProfileResponse{}
 	profileResp.About = profile.About
-	profileResp.Resume.HasResume = profile.ResumeFilePath != ""
+	profileResp.Resume.HasResume = profile.ResumeFilePath != nil && *profile.ResumeFilePath != ""
 	if profileResp.Resume.HasResume {
-		profileResp.Resume.FileName = profile.ResumeFileName
-		profileResp.Resume.FileSize = profile.ResumeFileSize
+		if profile.ResumeFileName != nil {
+			profileResp.Resume.FileName = *profile.ResumeFileName
+		}
+		if profile.ResumeFileSize != nil {
+			profileResp.Resume.FileSize = *profile.ResumeFileSize
+		}
 		if profile.ResumeUploadedAt != nil {
 			profileResp.Resume.UploadedAt = profile.ResumeUploadedAt.Format("2006-01-02 15:04:05")
 		}
@@ -73,10 +77,14 @@ func (h *ProfileHandler) UpdateProfile(c *fiber.Ctx) error {
 	// Build response
 	profileResp := domain.ProfileResponse{}
 	profileResp.About = profile.About
-	profileResp.Resume.HasResume = profile.ResumeFilePath != ""
+	profileResp.Resume.HasResume = profile.ResumeFilePath != nil && *profile.ResumeFilePath != ""
 	if profileResp.Resume.HasResume {
-		profileResp.Resume.FileName = profile.ResumeFileName
-		profileResp.Resume.FileSize = profile.ResumeFileSize
+		if profile.ResumeFileName != nil {
+			profileResp.Resume.FileName = *profile.ResumeFileName
+		}
+		if profile.ResumeFileSize != nil {
+			profileResp.Resume.FileSize = *profile.ResumeFileSize
+		}
 		if profile.ResumeUploadedAt != nil {
 			profileResp.Resume.UploadedAt = profile.ResumeUploadedAt.Format("2006-01-02 15:04:05")
 		}
@@ -111,15 +119,23 @@ func (h *ProfileHandler) UploadResume(c *fiber.Ctx) error {
 
 	// Build response
 	uploadResp := domain.ResumeUploadResponse{
-		FileName:    profile.ResumeFileName,
-		FileSize:    profile.ResumeFileSize,
 		DownloadURL: "/api/profile/resume/download",
+	}
+	if profile.ResumeFileName != nil {
+		uploadResp.FileName = *profile.ResumeFileName
+	}
+	if profile.ResumeFileSize != nil {
+		uploadResp.FileSize = *profile.ResumeFileSize
 	}
 	if profile.ResumeUploadedAt != nil {
 		uploadResp.UploadedAt = profile.ResumeUploadedAt.Format("2006-01-02 15:04:05")
 	}
 
-	logger.Info("uploadResume: resume uploaded successfully", "filename", profile.ResumeFileName)
+	fileName := ""
+	if profile.ResumeFileName != nil {
+		fileName = *profile.ResumeFileName
+	}
+	logger.Info("uploadResume: resume uploaded successfully", "filename", fileName)
 	return response.SuccessResponse(c, fiber.StatusCreated, uploadResp, "Resume uploaded successfully")
 }
 
