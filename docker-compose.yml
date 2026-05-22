@@ -19,6 +19,7 @@ services:
       - quoteyouros_network
 
   backend:
+    image: lyandoo/quoteyouros-backend:v1.0.0
     build:
       context: .
       dockerfile: Dockerfile
