@@ -16,6 +16,7 @@ import (
 	blogrepo "github.com/quoteyouros/backend/internal/repository/blog"
 	commentrepo "github.com/quoteyouros/backend/internal/repository/comment"
 	contactrepo "github.com/quoteyouros/backend/internal/repository/contact"
+	messagerepo "github.com/quoteyouros/backend/internal/repository/message"
 	profilerepo "github.com/quoteyouros/backend/internal/repository/profile"
 	projectrepo "github.com/quoteyouros/backend/internal/repository/project"
 	authrepo "github.com/quoteyouros/backend/internal/repository/user"
@@ -23,6 +24,7 @@ import (
 	bloguc "github.com/quoteyouros/backend/internal/usecase/blog"
 	commentuc "github.com/quoteyouros/backend/internal/usecase/comment"
 	contactuc "github.com/quoteyouros/backend/internal/usecase/contact"
+	messageuc "github.com/quoteyouros/backend/internal/usecase/message"
 	profileuc "github.com/quoteyouros/backend/internal/usecase/profile"
 	projectuc "github.com/quoteyouros/backend/internal/usecase/project"
 	"github.com/quoteyouros/backend/pkg/fileupload"
@@ -64,6 +66,7 @@ func main() {
 	profileRepository := profilerepo.NewProfileRepository(db)
 	commentRepository := commentrepo.NewCommentRepository(db)
 	contactRepository := contactrepo.NewContactRepository(db)
+	messageRepository := messagerepo.NewMessageRepository(db)
 
 	// Initialize file upload service
 	applogger.Debug("main: initializing file upload service")
@@ -81,6 +84,7 @@ func main() {
 	profileUseCase := profileuc.New(profileRepository, fileUploadService)
 	commentUseCase := commentuc.New(commentRepository, blogRepository)
 	contactUseCase := contactuc.New(contactRepository, emailService, cfg.App.AdminEmail)
+	messageUseCase := messageuc.New(messageRepository)
 
 	// Initialize handlers
 	applogger.Debug("main: initializing handlers")
@@ -90,6 +94,7 @@ func main() {
 	profileHandler := handler.NewProfileHandler(profileUseCase)
 	commentHandler := handler.NewCommentHandler(commentUseCase)
 	contactHandler := handler.NewContactHandler(contactUseCase)
+	messageHandler := handler.NewMessageHandler(messageUseCase)
 
 	// Health check endpoint
 	app.Get("/health", func(c *fiber.Ctx) error {
@@ -109,7 +114,7 @@ func main() {
 
 	// Protected routes (admin)
 	jwtMiddleware := middleware.JWTAuth(cfg.JWT.Secret)
-	setupProtectedRoutes(api, authHandler, blogHandler, projectHandler, profileHandler, commentHandler, jwtMiddleware)
+	setupProtectedRoutes(api, authHandler, blogHandler, projectHandler, profileHandler, commentHandler, messageHandler, jwtMiddleware)
 
 	// Start server
 	addr := fmt.Sprintf(":%d", cfg.Server.Port)
@@ -152,7 +157,7 @@ func setupPublicRoutes(app fiber.Router, authHandler *handler.AuthHandler, blogH
 	app.Post("/contact", contactHandler.SubmitContact)
 }
 
-func setupProtectedRoutes(app fiber.Router, authHandler *handler.AuthHandler, blogHandler *handler.BlogHandler, projectHandler *handler.ProjectHandler, profileHandler *handler.ProfileHandler, commentHandler *handler.CommentHandler, jwtMiddleware fiber.Handler) {
+func setupProtectedRoutes(app fiber.Router, authHandler *handler.AuthHandler, blogHandler *handler.BlogHandler, projectHandler *handler.ProjectHandler, profileHandler *handler.ProfileHandler, commentHandler *handler.CommentHandler, messageHandler *handler.MessageHandler, jwtMiddleware fiber.Handler) {
 	// Auth protected routes
 	auth := app.Group("/auth", jwtMiddleware)
 	auth.Get("/me", authHandler.GetCurrentUser)
@@ -182,10 +187,6 @@ func setupProtectedRoutes(app fiber.Router, authHandler *handler.AuthHandler, bl
 
 	// Admin messages routes (protected)
 	messages := app.Group("/messages", jwtMiddleware)
-	messages.Get("", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{"message": "GET /api/messages - Not yet implemented"})
-	})
-	messages.Delete("/:id", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{"message": "DELETE /api/messages/:id - Not yet implemented"})
-	})
+	messages.Get("", messageHandler.GetAllMessages)
+	messages.Delete("/:id", messageHandler.DeleteMessage)
 }
