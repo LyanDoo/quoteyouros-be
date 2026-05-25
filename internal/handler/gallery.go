@@ -42,6 +42,7 @@ func (h *GalleryHandler) GetAllGalleryItems(c *fiber.Ctx) error {
 			ID:          item.ID,
 			Title:       item.Title,
 			Description: item.Description,
+			Author:      item.Author,
 			Image:       "/api/gallery/images/" + item.ImageFileName,
 			CreatedAt:   item.CreatedAt.Format("2006-01-02 15:04:05"),
 			UpdatedAt:   item.UpdatedAt.Format("2006-01-02 15:04:05"),
@@ -76,6 +77,7 @@ func (h *GalleryHandler) GetGalleryItem(c *fiber.Ctx) error {
 		ID:          item.ID,
 		Title:       item.Title,
 		Description: item.Description,
+		Author:      item.Author,
 		Image:       "/api/gallery/images/" + item.ImageFileName,
 		CreatedAt:   item.CreatedAt.Format("2006-01-02 15:04:05"),
 		UpdatedAt:   item.UpdatedAt.Format("2006-01-02 15:04:05"),
@@ -100,6 +102,11 @@ func (h *GalleryHandler) CreateGalleryItem(c *fiber.Ctx) error {
 		description = c.FormValue("Description")
 	}
 
+	author := c.FormValue("author")
+	if author == "" {
+		author = c.FormValue("Author")
+	}
+
 	// Parse form file
 	file, err := c.FormFile("image")
 	if err != nil {
@@ -110,7 +117,7 @@ func (h *GalleryHandler) CreateGalleryItem(c *fiber.Ctx) error {
 		return response.ErrorResponseJSON(c, fiber.StatusBadRequest, "image file is required", fiber.StatusBadRequest)
 	}
 
-	item, err := h.usecase.CreateGalleryItem(c.Context(), title, description, file)
+	item, err := h.usecase.CreateGalleryItem(c.Context(), title, description, author, file)
 	if err != nil {
 		if appErr, ok := err.(*apperrors.AppError); ok {
 			logger.Warn("createGalleryItem: failed to create item", "error", appErr.Details)
@@ -124,6 +131,7 @@ func (h *GalleryHandler) CreateGalleryItem(c *fiber.Ctx) error {
 		ID:          item.ID,
 		Title:       item.Title,
 		Description: item.Description,
+		Author:      item.Author,
 		Image:       "/api/gallery/images/" + item.ImageFileName,
 		CreatedAt:   item.CreatedAt.Format("2006-01-02 15:04:05"),
 		UpdatedAt:   item.UpdatedAt.Format("2006-01-02 15:04:05"),
@@ -152,6 +160,11 @@ func (h *GalleryHandler) UpdateGalleryItem(c *fiber.Ctx) error {
 		description = c.FormValue("Description")
 	}
 
+	author := c.FormValue("author")
+	if author == "" {
+		author = c.FormValue("Author")
+	}
+
 	// Parse optional form file
 	var file *multipart.FileHeader
 	form, err := c.MultipartForm()
@@ -164,7 +177,7 @@ func (h *GalleryHandler) UpdateGalleryItem(c *fiber.Ctx) error {
 	}
 
 	logger.Info("updateGalleryItem: attempting to update gallery item", "item_id", id)
-	item, err := h.usecase.UpdateGalleryItem(c.Context(), id, title, description, file)
+	item, err := h.usecase.UpdateGalleryItem(c.Context(), id, title, description, author, file)
 	if err != nil {
 		if appErr, ok := err.(*apperrors.AppError); ok {
 			logger.Warn("updateGalleryItem: failed to update item", "item_id", id, "error", appErr.Details)
@@ -178,6 +191,7 @@ func (h *GalleryHandler) UpdateGalleryItem(c *fiber.Ctx) error {
 		ID:          item.ID,
 		Title:       item.Title,
 		Description: item.Description,
+		Author:      item.Author,
 		Image:       "/api/gallery/images/" + item.ImageFileName,
 		CreatedAt:   item.CreatedAt.Format("2006-01-02 15:04:05"),
 		UpdatedAt:   item.UpdatedAt.Format("2006-01-02 15:04:05"),

@@ -36,6 +36,7 @@ Fetch the list of all uploaded NFT photographs.
           "id": "270db65a-063a-4ef6-ac16-2f0857ef1960",
           "title": "Neon Sunset",
           "description": "Captured during sunset at the beach, featuring vibrant pink and blue colors.",
+          "author": "John Doe",
           "image": "/api/gallery/images/1716670400_neon_sunset.png",
           "created_at": "2026-05-25 22:45:00",
           "updated_at": "2026-05-25 22:45:00"
@@ -82,7 +83,8 @@ Upload a new photograph to the NFT gallery.
 *   **Request Body (form-data):**
     *   `title` (string, required): The name of the NFT.
     *   `description` (string, required): Background story/attributes.
-    *   `image` (file, required): The binary image file to upload. Allowed formats: PNG, JPG/JPEG, GIF, WebP (max 5MB).
+    *   `author` (string, required): The name of the artist/creator.
+    *   `image` (file, required): The binary image file to upload. Allowed formats: PNG, JPG/JPEG, GIF, WebP (max 20MB).
 
 ### Success Response
 *   **Code:** `210 Created`
@@ -95,6 +97,7 @@ Upload a new photograph to the NFT gallery.
         "id": "270db65a-063a-4ef6-ac16-2f0857ef1960",
         "title": "Neon Sunset",
         "description": "Captured during sunset at the beach, featuring vibrant pink and blue colors.",
+        "author": "John Doe",
         "image": "/api/gallery/images/1716670400_neon_sunset.png",
         "created_at": "2026-05-25 22:45:00",
         "updated_at": "2026-05-25 22:45:00"
@@ -119,7 +122,8 @@ Update the details of an existing gallery item. You can optionally replace the i
 *   **Request Body (form-data):**
     *   `title` (string, optional): Updated name of the NFT.
     *   `description` (string, optional): Updated background story.
-    *   `image` (file, optional): A new binary image file to replace the old one (max 5MB). If omitted, the old image is kept.
+    *   `author` (string, optional): Updated name of the artist/creator.
+    *   `image` (file, optional): A new binary image file to replace the old one (max 20MB). If omitted, the old image is kept.
 
 ### Success Response
 *   **Code:** `200 OK`
@@ -132,6 +136,7 @@ Update the details of an existing gallery item. You can optionally replace the i
         "id": "270db65a-063a-4ef6-ac16-2f0857ef1960",
         "title": "Updated Title",
         "description": "Updated description details.",
+        "author": "Jane Doe",
         "image": "/api/gallery/images/1716679999_new_sunset.png",
         "created_at": "2026-05-25 22:45:00",
         "updated_at": "2026-05-25 22:50:00"

@@ -108,7 +108,7 @@ func TestCreateGalleryItem_Success(t *testing.T) {
 	pngHeader := []byte("\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89")
 	file := newTestImageFileHeader(t, "test.png", pngHeader)
 
-	item, err := uc.CreateGalleryItem(context.Background(), "Awesome NFT", "NFT Description", file)
+	item, err := uc.CreateGalleryItem(context.Background(), "Awesome NFT", "NFT Description", "John Doe", file)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -123,6 +123,10 @@ func TestCreateGalleryItem_Success(t *testing.T) {
 
 	if item.Description != "NFT Description" {
 		t.Errorf("expected description NFT Description, got %s", item.Description)
+	}
+
+	if item.Author != "John Doe" {
+		t.Errorf("expected author John Doe, got %s", item.Author)
 	}
 
 	if item.ImageFileName == "" {
@@ -156,6 +160,7 @@ func TestCreateGalleryItem_ValidationFailures(t *testing.T) {
 		name        string
 		title       string
 		description string
+		author      string
 		file        *multipart.FileHeader
 		wantErr     string
 	}{
@@ -163,6 +168,7 @@ func TestCreateGalleryItem_ValidationFailures(t *testing.T) {
 			name:        "empty title",
 			title:       "",
 			description: "Some description",
+			author:      "Author Name",
 			file:        file,
 			wantErr:     "title is required",
 		},
@@ -170,13 +176,23 @@ func TestCreateGalleryItem_ValidationFailures(t *testing.T) {
 			name:        "empty description",
 			title:       "Valid Title",
 			description: "",
+			author:      "Author Name",
 			file:        file,
 			wantErr:     "description is required",
+		},
+		{
+			name:        "empty author",
+			title:       "Valid Title",
+			description: "Some description",
+			author:      "",
+			file:        file,
+			wantErr:     "author is required",
 		},
 		{
 			name:        "nil file",
 			title:       "Valid Title",
 			description: "Some description",
+			author:      "Author Name",
 			file:        nil,
 			wantErr:     "image file is required",
 		},
@@ -184,6 +200,7 @@ func TestCreateGalleryItem_ValidationFailures(t *testing.T) {
 			name:        "invalid file extension",
 			title:       "Valid Title",
 			description: "Some description",
+			author:      "Author Name",
 			file:        newTestImageFileHeader(t, "test.pdf", []byte("%PDF-1.4")),
 			wantErr:     "only JPEG, PNG, GIF, and WebP images are allowed",
 		},
@@ -191,6 +208,7 @@ func TestCreateGalleryItem_ValidationFailures(t *testing.T) {
 			name:        "invalid file content",
 			title:       "Valid Title",
 			description: "Some description",
+			author:      "Author Name",
 			file:        newTestImageFileHeader(t, "test.png", []byte("plain text content")),
 			wantErr:     "file content is not a valid image",
 		},
@@ -198,7 +216,7 @@ func TestCreateGalleryItem_ValidationFailures(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := uc.CreateGalleryItem(context.Background(), tt.title, tt.description, tt.file)
+			_, err := uc.CreateGalleryItem(context.Background(), tt.title, tt.description, tt.author, tt.file)
 			if err == nil {
 				t.Fatal("expected error, got nil")
 			}
@@ -228,7 +246,7 @@ func TestCreateGalleryItem_DatabaseFailureCleanup(t *testing.T) {
 	pngHeader := []byte("\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89")
 	file := newTestImageFileHeader(t, "test.png", pngHeader)
 
-	_, err := uc.CreateGalleryItem(context.Background(), "Awesome NFT", "NFT Description", file)
+	_, err := uc.CreateGalleryItem(context.Background(), "Awesome NFT", "NFT Description", "John Doe", file)
 	if err == nil {
 		t.Fatal("expected database error, got nil")
 	}
@@ -251,6 +269,7 @@ func TestGetGalleryItem_SuccessAndNotFound(t *testing.T) {
 		ID:            "item-123",
 		Title:         "Sample NFT",
 		Description:   "Description",
+		Author:        "John Doe",
 		ImageFileName: "img.png",
 		ImageFilePath: "/some/path/img.png",
 		CreatedAt:     time.Now(),
@@ -301,6 +320,7 @@ func TestUpdateGalleryItem_SuccessWithoutFile(t *testing.T) {
 		ID:            "item-123",
 		Title:         "Old Title",
 		Description:   "Old Description",
+		Author:        "Old Author",
 		ImageFileName: "old.png",
 		ImageFilePath: "/some/path/old.png",
 		CreatedAt:     time.Now(),
@@ -323,12 +343,12 @@ func TestUpdateGalleryItem_SuccessWithoutFile(t *testing.T) {
 
 	uc := gallery.New(repo, fileUpload)
 
-	item, err := uc.UpdateGalleryItem(context.Background(), "item-123", "New Title", "New Description", nil)
+	item, err := uc.UpdateGalleryItem(context.Background(), "item-123", "New Title", "New Description", "New Author", nil)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	if item.Title != "New Title" || item.Description != "New Description" {
+	if item.Title != "New Title" || item.Description != "New Description" || item.Author != "New Author" {
 		t.Errorf("fields did not update properly: %+v", item)
 	}
 
@@ -357,6 +377,7 @@ func TestUpdateGalleryItem_SuccessWithFileReplacement(t *testing.T) {
 		ID:            "item-123",
 		Title:         "Old Title",
 		Description:   "Old Description",
+		Author:        "Old Author",
 		ImageFileName: oldFileName,
 		ImageFilePath: oldFilePath,
 		CreatedAt:     time.Now(),
@@ -377,7 +398,7 @@ func TestUpdateGalleryItem_SuccessWithFileReplacement(t *testing.T) {
 	pngHeader := []byte("\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89")
 	newFile := newTestImageFileHeader(t, "new_image.png", pngHeader)
 
-	item, err := uc.UpdateGalleryItem(context.Background(), "item-123", "New Title", "New Description", newFile)
+	item, err := uc.UpdateGalleryItem(context.Background(), "item-123", "New Title", "New Description", "New Author", newFile)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -409,6 +430,7 @@ func TestDeleteGalleryItem_Success(t *testing.T) {
 		ID:            "item-123",
 		Title:         "Delete Me",
 		Description:   "Desc",
+		Author:        "Author",
 		ImageFileName: fileName,
 		ImageFilePath: filePath,
 	}

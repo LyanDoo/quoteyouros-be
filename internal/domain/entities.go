@@ -286,6 +286,7 @@ type GalleryItem struct {
 	ID            string    `db:"id"`
 	Title         string    `db:"title"`
 	Description   string    `db:"description"`
+	Author        string    `db:"author"`
 	ImageFileName string    `db:"image_file_name"`
 	ImageFilePath string    `db:"image_file_path"`
 	ImageFileSize int64     `db:"image_file_size"`
@@ -299,18 +300,20 @@ type GalleryItemResponse struct {
 	ID          string `json:"id"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
+	Author      string `json:"author"`
 	Image       string `json:"image"` // Endpoint URL, e.g. "/api/gallery/images/filename.png"
 	CreatedAt   string `json:"created_at"`
 	UpdatedAt   string `json:"updated_at"`
 }
 
 // NewGalleryItem creates a new gallery item with ID and timestamp
-func NewGalleryItem(title, description, fileName, filePath string, fileSize int64, mimeType string) *GalleryItem {
+func NewGalleryItem(title, description, author, fileName, filePath string, fileSize int64, mimeType string) *GalleryItem {
 	now := time.Now()
 	return &GalleryItem{
 		ID:            uuid.New().String(),
 		Title:         title,
 		Description:   description,
+		Author:        author,
 		ImageFileName: fileName,
 		ImageFilePath: filePath,
 		ImageFileSize: fileSize,

@@ -731,6 +731,11 @@
                   "type": "text"
                 },
                 {
+                  "key": "author",
+                  "value": "John Doe",
+                  "type": "text"
+                },
+                {
                   "key": "image",
                   "type": "file",
                   "src": "photo.jpg"
@@ -768,6 +773,11 @@
                 {
                   "key": "description",
                   "value": "Updated description for the NFT.",
+                  "type": "text"
+                },
+                {
+                  "key": "author",
+                  "value": "John Doe",
                   "type": "text"
                 },
                 {

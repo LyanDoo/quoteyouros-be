@@ -25,7 +25,7 @@ func New(galleryRepo domain.GalleryRepository, fileUpload *fileupload.FileUpload
 }
 
 // CreateGalleryItem uploads an image and saves gallery item metadata
-func (u *GalleryUseCase) CreateGalleryItem(ctx context.Context, title, description string, file *multipart.FileHeader) (*domain.GalleryItem, error) {
+func (u *GalleryUseCase) CreateGalleryItem(ctx context.Context, title, description, author string, file *multipart.FileHeader) (*domain.GalleryItem, error) {
 	logger.Debug("createGalleryItem: validating request", "title", title)
 
 	if title == "" {
@@ -33,6 +33,9 @@ func (u *GalleryUseCase) CreateGalleryItem(ctx context.Context, title, descripti
 	}
 	if description == "" {
 		return nil, apperrors.BadRequest("description is required")
+	}
+	if author == "" {
+		return nil, apperrors.BadRequest("author is required")
 	}
 	if file == nil {
 		return nil, apperrors.BadRequest("image file is required")
@@ -53,7 +56,7 @@ func (u *GalleryUseCase) CreateGalleryItem(ctx context.Context, title, descripti
 	}
 
 	// Build gallery item entity
-	item := domain.NewGalleryItem(title, description, fileName, filePath, fileSize, mimeType)
+	item := domain.NewGalleryItem(title, description, author, fileName, filePath, fileSize, mimeType)
 
 	logger.Info("createGalleryItem: creating gallery item in database", "item_id", item.ID, "title", item.Title)
 	if err := u.galleryRepo.CreateGalleryItem(ctx, item); err != nil {
@@ -102,7 +105,7 @@ func (u *GalleryUseCase) GetAllGalleryItems(ctx context.Context) ([]*domain.Gall
 }
 
 // UpdateGalleryItem updates an existing gallery item metadata and optional image replacement
-func (u *GalleryUseCase) UpdateGalleryItem(ctx context.Context, id string, title, description string, file *multipart.FileHeader) (*domain.GalleryItem, error) {
+func (u *GalleryUseCase) UpdateGalleryItem(ctx context.Context, id string, title, description, author string, file *multipart.FileHeader) (*domain.GalleryItem, error) {
 	logger.Debug("updateGalleryItem: validating request", "item_id", id)
 
 	// Retrieve existing item
@@ -148,6 +151,9 @@ func (u *GalleryUseCase) UpdateGalleryItem(ctx context.Context, id string, title
 	}
 	if description != "" {
 		item.Description = description
+	}
+	if author != "" {
+		item.Author = author
 	}
 	if newUploaded {
 		item.ImageFileName = newFileName
