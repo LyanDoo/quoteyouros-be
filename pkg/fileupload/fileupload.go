@@ -21,8 +21,8 @@ const (
 	// AllowedMimeType is the only allowed MIME type
 	AllowedMimeType = "application/pdf"
 
-	// MaxImageSize is the maximum allowed image size (5MB)
-	MaxImageSize = 5 * 1024 * 1024 // 5MB
+	// MaxImageSize is the maximum allowed image size (20MB)
+	MaxImageSize = 20 * 1024 * 1024 // 20MB
 	// GalleryStoragePath is the directory where gallery images are stored
 	GalleryStoragePath = "./storage/gallery"
 )

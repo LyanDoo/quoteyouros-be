@@ -48,7 +48,8 @@ func main() {
 	// Initialize Fiber app
 	applogger.Info("main: initializing Fiber app")
 	app := fiber.New(fiber.Config{
-		AppName: "QuoteYourOS Backend API v1.0.0",
+		AppName:   "QuoteYourOS Backend API v1.0.0",
+		BodyLimit: 20 * 1024 * 1024, // 20MB limit
 	})
 
 	// Middleware
