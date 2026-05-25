@@ -10,16 +10,19 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/quoteyouros/backend/internal/config"
 	"github.com/quoteyouros/backend/internal/handler"
+	"github.com/quoteyouros/backend/internal/infrastructure/email"
 	"github.com/quoteyouros/backend/internal/infrastructure/postgres"
 	"github.com/quoteyouros/backend/internal/middleware"
 	blogrepo "github.com/quoteyouros/backend/internal/repository/blog"
 	commentrepo "github.com/quoteyouros/backend/internal/repository/comment"
+	contactrepo "github.com/quoteyouros/backend/internal/repository/contact"
 	profilerepo "github.com/quoteyouros/backend/internal/repository/profile"
 	projectrepo "github.com/quoteyouros/backend/internal/repository/project"
 	authrepo "github.com/quoteyouros/backend/internal/repository/user"
 	authuc "github.com/quoteyouros/backend/internal/usecase/auth"
 	bloguc "github.com/quoteyouros/backend/internal/usecase/blog"
 	commentuc "github.com/quoteyouros/backend/internal/usecase/comment"
+	contactuc "github.com/quoteyouros/backend/internal/usecase/contact"
 	profileuc "github.com/quoteyouros/backend/internal/usecase/profile"
 	projectuc "github.com/quoteyouros/backend/internal/usecase/project"
 	"github.com/quoteyouros/backend/pkg/fileupload"
@@ -60,10 +63,15 @@ func main() {
 	projectRepository := projectrepo.NewProjectRepository(db)
 	profileRepository := profilerepo.NewProfileRepository(db)
 	commentRepository := commentrepo.NewCommentRepository(db)
+	contactRepository := contactrepo.NewContactRepository(db)
 
 	// Initialize file upload service
 	applogger.Debug("main: initializing file upload service")
 	fileUploadService := fileupload.New(fileupload.ResumeStoragePath)
+
+	// Initialize email service
+	applogger.Debug("main: initializing email service")
+	emailService := email.NewEmailService(&cfg.Email)
 
 	// Initialize use cases
 	applogger.Debug("main: initializing use cases")
@@ -72,6 +80,7 @@ func main() {
 	projectUseCase := projectuc.New(projectRepository)
 	profileUseCase := profileuc.New(profileRepository, fileUploadService)
 	commentUseCase := commentuc.New(commentRepository, blogRepository)
+	contactUseCase := contactuc.New(contactRepository, emailService, cfg.App.AdminEmail)
 
 	// Initialize handlers
 	applogger.Debug("main: initializing handlers")
@@ -80,6 +89,7 @@ func main() {
 	projectHandler := handler.NewProjectHandler(projectUseCase)
 	profileHandler := handler.NewProfileHandler(profileUseCase)
 	commentHandler := handler.NewCommentHandler(commentUseCase)
+	contactHandler := handler.NewContactHandler(contactUseCase)
 
 	// Health check endpoint
 	app.Get("/health", func(c *fiber.Ctx) error {
@@ -95,7 +105,7 @@ func main() {
 	api := app.Group("/api")
 
 	// Public routes
-	setupPublicRoutes(api, authHandler, blogHandler, projectHandler, profileHandler, commentHandler)
+	setupPublicRoutes(api, authHandler, blogHandler, projectHandler, profileHandler, commentHandler, contactHandler)
 
 	// Protected routes (admin)
 	jwtMiddleware := middleware.JWTAuth(cfg.JWT.Secret)
@@ -111,7 +121,7 @@ func main() {
 	}
 }
 
-func setupPublicRoutes(app fiber.Router, authHandler *handler.AuthHandler, blogHandler *handler.BlogHandler, projectHandler *handler.ProjectHandler, profileHandler *handler.ProfileHandler, commentHandler *handler.CommentHandler) {
+func setupPublicRoutes(app fiber.Router, authHandler *handler.AuthHandler, blogHandler *handler.BlogHandler, projectHandler *handler.ProjectHandler, profileHandler *handler.ProfileHandler, commentHandler *handler.CommentHandler, contactHandler *handler.ContactHandler) {
 	// Auth routes
 	auth := app.Group("/auth")
 	auth.Post("/register", authHandler.Register)
@@ -139,9 +149,7 @@ func setupPublicRoutes(app fiber.Router, authHandler *handler.AuthHandler, blogH
 	comments.Get("/:id/replies", commentHandler.GetReplies)
 
 	// Contact routes
-	app.Post("/contact", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{"message": "POST /api/contact - Not yet implemented"})
-	})
+	app.Post("/contact", contactHandler.SubmitContact)
 }
 
 func setupProtectedRoutes(app fiber.Router, authHandler *handler.AuthHandler, blogHandler *handler.BlogHandler, projectHandler *handler.ProjectHandler, profileHandler *handler.ProfileHandler, commentHandler *handler.CommentHandler, jwtMiddleware fiber.Handler) {
