@@ -58,3 +58,13 @@ type CommentRepository interface {
 	UpdateComment(ctx context.Context, id string, comment *Comment) error
 	DeleteComment(ctx context.Context, id string) error
 }
+
+// GalleryRepository defines gallery data access operations
+type GalleryRepository interface {
+	CreateGalleryItem(ctx context.Context, item *GalleryItem) error
+	GetGalleryItem(ctx context.Context, id string) (*GalleryItem, error)
+	GetAllGalleryItems(ctx context.Context) ([]*GalleryItem, error)
+	UpdateGalleryItem(ctx context.Context, id string, item *GalleryItem) error
+	DeleteGalleryItem(ctx context.Context, id string) error
+}
+

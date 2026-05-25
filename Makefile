@@ -57,7 +57,7 @@ db-reset: db-migrate-revert db-migrate
 	@echo "Database reset complete"
 
 # Forward migrations
-db-migrate: db-migrate-init db-migrate-profiles db-migrate-comments
+db-migrate: db-migrate-init db-migrate-profiles db-migrate-comments db-migrate-gallery
 	@echo "All migrations completed"
 
 db-migrate-init:
@@ -73,8 +73,12 @@ db-migrate-comments:
 	@echo "Running comments migration (005)..."
 	docker exec -i quoteyouros_db psql -U postgres -d quoteyouros < migrations/005_create_comments.sql
 
+db-migrate-gallery:
+	@echo "Running gallery migration (007)..."
+	docker exec -i quoteyouros_db psql -U postgres -d quoteyouros < migrations/007_create_gallery.sql
+
 # Revert migrations
-db-migrate-revert: db-migrate-revert-comments db-migrate-revert-profiles db-migrate-revert-all
+db-migrate-revert: db-migrate-revert-gallery db-migrate-revert-comments db-migrate-revert-profiles db-migrate-revert-all
 	@echo "All migrations reverted"
 
 db-migrate-revert-profiles:
@@ -84,6 +88,10 @@ db-migrate-revert-profiles:
 db-migrate-revert-comments:
 	@echo "Reverting comments migration (006)..."
 	docker exec -i quoteyouros_db psql -U postgres -d quoteyouros < migrations/006_revert_comments.sql
+
+db-migrate-revert-gallery:
+	@echo "Reverting gallery migration (008)..."
+	docker exec -i quoteyouros_db psql -U postgres -d quoteyouros < migrations/008_revert_gallery.sql
 
 db-migrate-revert-all:
 	@echo "Reverting all migrations (002)..."

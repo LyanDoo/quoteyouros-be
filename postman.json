@@ -674,6 +674,139 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Gallery",
+      "item": [
+        {
+          "name": "Get All Gallery Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/gallery",
+              "host": ["{{base_url}}"],
+              "path": ["api", "gallery"]
+            },
+            "description": "Fetch all NFT gallery items"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Gallery Image",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/gallery/images/{{gallery_filename}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "gallery", "images", "{{gallery_filename}}"]
+            },
+            "description": "Serve raw gallery image"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Gallery Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "Awesome NFT Photo",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "An interesting photo captured at sunset with beautiful gradients.",
+                  "type": "text"
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": "photo.jpg"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/gallery",
+              "host": ["{{base_url}}"],
+              "path": ["api", "gallery"]
+            },
+            "description": "Upload a new NFT photo to the gallery (protected)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Gallery Item",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "Updated NFT Photo Title",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Updated description for the NFT.",
+                  "type": "text"
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": "new_photo.jpg"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/gallery/{{gallery_item_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "gallery", "{{gallery_item_id}}"]
+            },
+            "description": "Update an existing gallery item or replace its image (protected)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Gallery Item",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/gallery/{{gallery_item_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "gallery", "{{gallery_item_id}}"]
+            },
+            "description": "Delete a gallery item and remove its image file (protected)"
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [
@@ -705,6 +838,16 @@
     {
       "key": "comment_id",
       "value": "comment-id-here",
+      "type": "string"
+    },
+    {
+      "key": "gallery_item_id",
+      "value": "gallery-item-id-here",
+      "type": "string"
+    },
+    {
+      "key": "gallery_filename",
+      "value": "filename-here.png",
       "type": "string"
     }
   ]

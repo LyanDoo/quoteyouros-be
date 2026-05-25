@@ -1,6 +1,9 @@
 package domain
 
-import "context"
+import (
+	"context"
+	"mime/multipart"
+)
 
 // BlogUseCase defines blog business logic operations
 type BlogUseCase interface {
@@ -44,3 +47,13 @@ type ProfileUseCase interface {
 	GetResume(ctx context.Context) (interface{}, error)
 	GetResumeDownloadURL(ctx context.Context) (string, error)
 }
+
+// GalleryUseCase defines gallery business logic operations
+type GalleryUseCase interface {
+	CreateGalleryItem(ctx context.Context, title, description string, file *multipart.FileHeader) (*GalleryItem, error)
+	GetGalleryItem(ctx context.Context, id string) (*GalleryItem, error)
+	GetAllGalleryItems(ctx context.Context) ([]*GalleryItem, error)
+	UpdateGalleryItem(ctx context.Context, id string, title, description string, file *multipart.FileHeader) (*GalleryItem, error)
+	DeleteGalleryItem(ctx context.Context, id string) error
+}
+

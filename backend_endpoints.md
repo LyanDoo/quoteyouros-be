@@ -39,9 +39,16 @@ Currently, "About Me" and "Resume" are hardcoded. If you want to update them wit
 *   `GET /api/profile/resume/download`
     *   **Purpose:** Endpoint to download your actual PDF resume.
 
+## 🖼️ 5. NFT Gallery (Windows Picture and Fax Viewer)
+Used to fetch photographs for the `PhotoViewer.jsx` component.
+
+*   `GET /api/gallery`
+    *   **Purpose:** Fetch all NFT photographs.
+    *   **Response:** Array of objects `[{ id, title, description, image }]`.
+
 ---
 
-## 🔒 5. Backoffice / Admin (Protected Endpoints)
+## 🔒 6. Backoffice / Admin (Protected Endpoints)
 To actually *create* the dynamic content, you'll need an admin panel (perhaps hidden behind a specific desktop icon or a secret URL) and authenticated endpoints.
 
 *   **Authentication**
@@ -56,4 +63,17 @@ To actually *create* the dynamic content, you'll need an admin panel (perhaps hi
     *   `POST /api/projects` (Add a new project)
     *   `PUT /api/projects/:id` (Edit a project)
     *   `DELETE /api/projects/:id` (Remove a project)
+    *   `POST /api/gallery` (Add a new NFT photo)
+        *   **Payload:** `multipart/form-data`
+            *   `title` / `Title` (string, required): The name of the NFT.
+            *   `description` / `Description` (string, required): Background story/attributes.
+            *   `image` / `Image` (file, required): The raw binary image file upload.
+    *   `PUT /api/gallery/:id` (Edit an NFT photo)
+        *   **Payload:** `multipart/form-data`
+            *   `title` / `Title` (string, optional): Updated name.
+            *   `description` / `Description` (string, optional): Updated description.
+            *   `image` / `Image` (file, optional): A new binary image file to overwrite the old one.
+    *   `DELETE /api/gallery/:id` (Remove an NFT photo)
     *   `GET /api/messages` (Read your contact form submissions)
+
+

@@ -16,6 +16,7 @@ import (
 	blogrepo "github.com/quoteyouros/backend/internal/repository/blog"
 	commentrepo "github.com/quoteyouros/backend/internal/repository/comment"
 	contactrepo "github.com/quoteyouros/backend/internal/repository/contact"
+	galleryrepo "github.com/quoteyouros/backend/internal/repository/gallery"
 	messagerepo "github.com/quoteyouros/backend/internal/repository/message"
 	profilerepo "github.com/quoteyouros/backend/internal/repository/profile"
 	projectrepo "github.com/quoteyouros/backend/internal/repository/project"
@@ -24,6 +25,7 @@ import (
 	bloguc "github.com/quoteyouros/backend/internal/usecase/blog"
 	commentuc "github.com/quoteyouros/backend/internal/usecase/comment"
 	contactuc "github.com/quoteyouros/backend/internal/usecase/contact"
+	galleryuc "github.com/quoteyouros/backend/internal/usecase/gallery"
 	messageuc "github.com/quoteyouros/backend/internal/usecase/message"
 	profileuc "github.com/quoteyouros/backend/internal/usecase/profile"
 	projectuc "github.com/quoteyouros/backend/internal/usecase/project"
@@ -67,10 +69,12 @@ func main() {
 	commentRepository := commentrepo.NewCommentRepository(db)
 	contactRepository := contactrepo.NewContactRepository(db)
 	messageRepository := messagerepo.NewMessageRepository(db)
+	galleryRepository := galleryrepo.NewGalleryRepository(db)
 
-	// Initialize file upload service
-	applogger.Debug("main: initializing file upload service")
-	fileUploadService := fileupload.New(fileupload.ResumeStoragePath)
+	// Initialize file upload services
+	applogger.Debug("main: initializing file upload services")
+	resumeUploadService := fileupload.New(fileupload.ResumeStoragePath)
+	galleryUploadService := fileupload.New(fileupload.GalleryStoragePath)
 
 	// Initialize email service
 	applogger.Debug("main: initializing email service")
@@ -81,10 +85,11 @@ func main() {
 	authUseCase := authuc.New(userRepository, cfg.JWT.Secret, cfg.JWT.Expiration)
 	blogUseCase := bloguc.New(blogRepository)
 	projectUseCase := projectuc.New(projectRepository)
-	profileUseCase := profileuc.New(profileRepository, fileUploadService)
+	profileUseCase := profileuc.New(profileRepository, resumeUploadService)
 	commentUseCase := commentuc.New(commentRepository, blogRepository)
 	contactUseCase := contactuc.New(contactRepository, emailService, cfg.App.AdminEmail)
 	messageUseCase := messageuc.New(messageRepository)
+	galleryUseCase := galleryuc.New(galleryRepository, galleryUploadService)
 
 	// Initialize handlers
 	applogger.Debug("main: initializing handlers")
@@ -95,6 +100,7 @@ func main() {
 	commentHandler := handler.NewCommentHandler(commentUseCase)
 	contactHandler := handler.NewContactHandler(contactUseCase)
 	messageHandler := handler.NewMessageHandler(messageUseCase)
+	galleryHandler := handler.NewGalleryHandler(galleryUseCase)
 
 	// Health check endpoint
 	app.Get("/health", func(c *fiber.Ctx) error {
@@ -110,11 +116,11 @@ func main() {
 	api := app.Group("/api")
 
 	// Public routes
-	setupPublicRoutes(api, authHandler, blogHandler, projectHandler, profileHandler, commentHandler, contactHandler)
+	setupPublicRoutes(api, authHandler, blogHandler, projectHandler, profileHandler, commentHandler, contactHandler, galleryHandler)
 
 	// Protected routes (admin)
 	jwtMiddleware := middleware.JWTAuth(cfg.JWT.Secret)
-	setupProtectedRoutes(api, authHandler, blogHandler, projectHandler, profileHandler, commentHandler, messageHandler, jwtMiddleware)
+	setupProtectedRoutes(api, authHandler, blogHandler, projectHandler, profileHandler, commentHandler, messageHandler, galleryHandler, jwtMiddleware)
 
 	// Start server
 	addr := fmt.Sprintf(":%d", cfg.Server.Port)
@@ -126,7 +132,7 @@ func main() {
 	}
 }
 
-func setupPublicRoutes(app fiber.Router, authHandler *handler.AuthHandler, blogHandler *handler.BlogHandler, projectHandler *handler.ProjectHandler, profileHandler *handler.ProfileHandler, commentHandler *handler.CommentHandler, contactHandler *handler.ContactHandler) {
+func setupPublicRoutes(app fiber.Router, authHandler *handler.AuthHandler, blogHandler *handler.BlogHandler, projectHandler *handler.ProjectHandler, profileHandler *handler.ProfileHandler, commentHandler *handler.CommentHandler, contactHandler *handler.ContactHandler, galleryHandler *handler.GalleryHandler) {
 	// Auth routes
 	auth := app.Group("/auth")
 	auth.Post("/register", authHandler.Register)
@@ -155,9 +161,14 @@ func setupPublicRoutes(app fiber.Router, authHandler *handler.AuthHandler, blogH
 
 	// Contact routes
 	app.Post("/contact", contactHandler.SubmitContact)
+
+	// Gallery routes
+	gallery := app.Group("/gallery")
+	gallery.Get("", galleryHandler.GetAllGalleryItems)
+	gallery.Get("/images/:filename", galleryHandler.GetImage)
 }
 
-func setupProtectedRoutes(app fiber.Router, authHandler *handler.AuthHandler, blogHandler *handler.BlogHandler, projectHandler *handler.ProjectHandler, profileHandler *handler.ProfileHandler, commentHandler *handler.CommentHandler, messageHandler *handler.MessageHandler, jwtMiddleware fiber.Handler) {
+func setupProtectedRoutes(app fiber.Router, authHandler *handler.AuthHandler, blogHandler *handler.BlogHandler, projectHandler *handler.ProjectHandler, profileHandler *handler.ProfileHandler, commentHandler *handler.CommentHandler, messageHandler *handler.MessageHandler, galleryHandler *handler.GalleryHandler, jwtMiddleware fiber.Handler) {
 	// Auth protected routes
 	auth := app.Group("/auth", jwtMiddleware)
 	auth.Get("/me", authHandler.GetCurrentUser)
@@ -189,4 +200,10 @@ func setupProtectedRoutes(app fiber.Router, authHandler *handler.AuthHandler, bl
 	messages := app.Group("/messages", jwtMiddleware)
 	messages.Get("", messageHandler.GetAllMessages)
 	messages.Delete("/:id", messageHandler.DeleteMessage)
+
+	// Admin gallery routes (protected)
+	gallery := app.Group("/gallery", jwtMiddleware)
+	gallery.Post("", galleryHandler.CreateGalleryItem)
+	gallery.Put("/:id", galleryHandler.UpdateGalleryItem)
+	gallery.Delete("/:id", galleryHandler.DeleteGalleryItem)
 }

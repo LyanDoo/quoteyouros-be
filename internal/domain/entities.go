@@ -280,3 +280,43 @@ func NewComment(blogPostID, authorName string, authorEmail *string, content stri
 		UpdatedAt:        now,
 	}
 }
+
+// GalleryItem represents an NFT gallery photo
+type GalleryItem struct {
+	ID            string    `db:"id"`
+	Title         string    `db:"title"`
+	Description   string    `db:"description"`
+	ImageFileName string    `db:"image_file_name"`
+	ImageFilePath string    `db:"image_file_path"`
+	ImageFileSize int64     `db:"image_file_size"`
+	ImageMimeType string    `db:"image_mime_type"`
+	CreatedAt     time.Time `db:"created_at"`
+	UpdatedAt     time.Time `db:"updated_at"`
+}
+
+// GalleryItemResponse represents the response DTO for public/admin gallery view
+type GalleryItemResponse struct {
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Image       string `json:"image"` // Endpoint URL, e.g. "/api/gallery/images/filename.png"
+	CreatedAt   string `json:"created_at"`
+	UpdatedAt   string `json:"updated_at"`
+}
+
+// NewGalleryItem creates a new gallery item with ID and timestamp
+func NewGalleryItem(title, description, fileName, filePath string, fileSize int64, mimeType string) *GalleryItem {
+	now := time.Now()
+	return &GalleryItem{
+		ID:            uuid.New().String(),
+		Title:         title,
+		Description:   description,
+		ImageFileName: fileName,
+		ImageFilePath: filePath,
+		ImageFileSize: fileSize,
+		ImageMimeType: mimeType,
+		CreatedAt:     now,
+		UpdatedAt:     now,
+	}
+}
+
