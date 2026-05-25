@@ -1,4 +1,4 @@
-.PHONY: help build run test db-up db-down db-reset docker-up docker-down docker-logs db-migrate db-migrate-revert db-migrate-init db-migrate-profiles db-migrate-comments db-migrate-revert-profiles db-migrate-revert-comments db-migrate-revert-all
+.PHONY: help build run test db-up db-down db-reset docker-up docker-down docker-logs db-migrate db-migrate-revert db-migrate-init db-migrate-profiles db-migrate-comments db-migrate-gallery db-migrate-revert-profiles db-migrate-revert-comments db-migrate-revert-gallery db-migrate-revert-all
 
 help:
 	@echo "Available commands:"
@@ -14,9 +14,11 @@ help:
 	@echo "  make db-migrate-init      - Run initial schema migration (001)"
 	@echo "  make db-migrate-profiles  - Run profiles migration (003)"
 	@echo "  make db-migrate-comments  - Run comments migration (005)"
+	@echo "  make db-migrate-gallery   - Run gallery migration (007)"
 	@echo "  make db-migrate-revert    - Revert all migrations"
 	@echo "  make db-migrate-revert-profiles - Revert profiles migration (004)"
 	@echo "  make db-migrate-revert-comments - Revert comments migration (006)"
+	@echo "  make db-migrate-revert-gallery  - Revert gallery migration (008)"
 	@echo "  make db-migrate-revert-all     - Revert all migrations (full)"
 	@echo ""
 	@echo "Docker commands:"
@@ -62,7 +64,7 @@ db-migrate: db-migrate-init db-migrate-profiles db-migrate-comments db-migrate-g
 
 db-migrate-init:
 	@echo "Running initial schema migration (001)..."
-	@powershell -Command "Start-Sleep -Seconds 2"
+	@sleep 2
 	docker exec -i quoteyouros_db psql -U postgres -d quoteyouros < migrations/001_init_schema.sql
 
 db-migrate-profiles:
